@@ -1,0 +1,73 @@
+#!/bin/bash
+set -euo pipefail
+
+readonly art_file="${1:-}"
+readonly quotes_file="${2:-}"
+
+function check_terminal_size() {
+  local min_cols="${1:-80}"
+  local min_rows="${2:-24}"
+
+  local cols rows
+  cols=$(tput cols)
+  rows=$(tput lines)
+
+  (( cols >= min_cols && rows >= min_rows ))
+}
+
+
+function is_text() {
+  local filename="$1"
+  local file_output
+  file_output=$(file --brief --mime-type "$filename")
+  [[ "$file_output" == text/* ]]
+}
+
+# Space is not enough, skipping candy.
+if ! check_terminal_size; then
+  exit
+fi
+
+# Check if required files are provided
+if [[ -z "$art_file" || -z "$quotes_file" ]]; then
+  echo "Usage: $0 <art_file.ascii> <quotes_file.txt>"
+  exit 1
+fi
+
+# Check that files exist and are readable
+if [[ ! -r "$art_file" ]]; then
+  echo "Error: ASCII file '$art_file' does not exist or is not readable."
+  exit 1
+fi
+
+if [[ ! -r "$quotes_file" ]]; then
+  echo "Error: TEXT file '$quotes_file' does not exist or is not readable."
+  exit 1
+fi
+
+# Verify file types
+if ! is_text "$art_file" || ! is_text "$quotes_file"; then
+  echo "Error: '$art_file' is not recognized as a text file."
+  exit 1
+fi
+
+# Load quotes from TXT
+mapfile -t quotes < "$quotes_file"
+if [[ ${#quotes[@]} -eq 0 ]]; then
+  echo "Error: No quotes found in '$quotes_file'."
+  exit 1
+fi
+
+# Select a random quote
+rand_index=$(( RANDOM % ${#quotes[@]} ))
+quote="${quotes[$rand_index]}"
+
+# Optional: define padding
+row=$(printf '%*s'"$quote")
+
+# Read and print ASCII art
+ascii_art=$(<"$art_file")
+echo "$ascii_art"
+echo "┐"
+echo "└┄ $row"
+exit 0
