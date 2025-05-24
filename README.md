@@ -8,8 +8,8 @@ then run the program as in the example below.
 **Examples:**
 
 ```sh
-./piptik /path/to/devil-art.ascii /path/to/devil-quotes.txt
-./piptik /path/to/devil-art.ascii /path/to/devil-quotes.txt | lolcat
+./piptik /path/to/art.ascii /path/to/quotes.txt
+./piptik /path/to/art.ascii /path/to/quotes.txt | lolcat
 ```
 Add to your .bashrc 
 
