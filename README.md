@@ -12,4 +12,5 @@ then run the program as in the example below.
 ./piptik /path/to/devil-art.ascii /path/to/devil-quotes.txt | lolcat
 ```
 Add to your .bashrc 
+
 ![Screen](preview.webp)
