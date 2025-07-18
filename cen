@@ -1,0 +1,75 @@
+# This file is part of piptik
+# 
+# piptik is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published
+# by the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+# 
+# suprps is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+#!/bin/bash
+
+ORIG_PS1="$PS1"
+cenactive=false
+
+update_ls_alias() {
+  if [[ "$cenactive" == true ]]; then
+    alias ls='cenls'
+  else
+    unalias ls 2>/dev/null
+    alias ls='ls -la --color=auto'
+  fi
+}
+
+_cenls_impl() {
+  local blacklist=("password" "vault" "secret" "secure" "private" "privates" "passwords")
+  local joined_blacklist
+  joined_blacklist=$(IFS=, ; echo "${blacklist[*]}")
+
+  local maniac_flag=0
+  local args=()
+
+  for arg in "$@"; do
+    if [[ $arg == "--maniac" ]]; then
+      maniac_flag=1
+    else
+      args+=("$arg")
+    fi
+  done
+
+  if (( maniac_flag )); then
+    eza -l --icons --all --color=always "${args[@]}" | cen --blacklist "$joined_blacklist" --maniac
+  else
+    eza -l --icons --all --color=always "${args[@]}" | cen --censor-symbol '-' --blacklist "$joined_blacklist" --match-len
+  fi
+}
+
+cenls() {
+  _cenls_impl "$@"
+}
+
+PROMPT_COMMAND='
+if [[ "$cenactive" == true ]]; then
+  PS1="[\u as sam@\h \W]\$ "
+else
+  PS1="'"$ORIG_PS1"'"
+fi
+'
+
+censet() {
+  cenactive=true
+  update_ls_alias
+  bind 'set disable-completion on'
+}
+
+cenuset() {
+  cenactive=false
+  update_ls_alias
+  bind 'set disable-completion off'
+}
